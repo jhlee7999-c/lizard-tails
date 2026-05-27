@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lizard.io Prototype</title>
+    <title>Lizard.io Premium</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: #1a2e1a;
+            background-color: #0d1a0d;
             font-family: 'Pretendard', sans-serif;
             color: white;
             user-select: none;
@@ -22,21 +22,23 @@
             top: 20px;
             left: 20px;
             pointer-events: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             z-index: 10;
         }
-        .score-board { font-size: 24px; font-weight: bold; color: #55aa55; }
-        .stats { font-size: 14px; opacity: 0.8; margin-top: 5px; }
+        .score-board { font-size: 28px; font-weight: 800; color: #78e08f; }
+        .stats { font-size: 14px; opacity: 0.8; margin-top: 5px; font-weight: 400; letter-spacing: 1px; }
 
         #minimap-container {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 100px;
-            height: 100px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.3);
+            width: 120px;
+            height: 120px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(120, 224, 143, 0.3);
+            border-radius: 10px;
             z-index: 10;
+            overflow: hidden;
         }
         #minimap { width: 100%; height: 100%; }
 
@@ -44,59 +46,54 @@
             position: absolute;
             bottom: 40px;
             left: 40px;
-            width: 80px;
-            height: 80px;
-            background: rgba(85, 170, 85, 0.4);
-            border: 3px solid #55aa55;
+            width: 85px;
+            height: 85px;
+            background: rgba(120, 224, 143, 0.2);
+            border: 3px solid #78e08f;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 900;
+            color: #78e08f;
             pointer-events: auto;
             cursor: pointer;
             z-index: 20;
-            transition: transform 0.1s;
+            transition: all 0.1s;
+            box-shadow: 0 0 15px rgba(120, 224, 143, 0.2);
         }
-        #boost-btn:active { background: rgba(85, 170, 85, 0.7); transform: scale(0.9); }
+        #boost-btn:active { background: rgba(120, 224, 143, 0.6); transform: scale(0.9); box-shadow: 0 0 25px rgba(120, 224, 143, 0.5); }
 
         #game-over {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
-        #game-over h1 { font-size: 60px; color: #ff6b6b; margin-bottom: 10px; }
-        #game-over p { font-size: 24px; margin-bottom: 30px; }
+        #game-over h1 { font-size: 72px; color: #ff6b6b; margin-bottom: 10px; font-weight: 900; }
         #restart-btn {
-            padding: 15px 40px;
-            font-size: 20px;
-            background: #55aa55;
+            padding: 18px 50px;
+            font-size: 22px;
+            background: #78e08f;
             border: none;
-            color: white;
+            color: #0d1a0d;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 12px;
+            font-weight: 800;
+            transition: transform 0.2s;
         }
-
-        #flash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: red;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 100;
-        }
+        #restart-btn:hover { transform: scale(1.05); }
 
         #joystick-base {
             position: absolute;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(120, 224, 143, 0.2);
             border-radius: 50%;
             display: none;
             pointer-events: none;
@@ -105,21 +102,22 @@
         }
         #joystick-knob {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.3);
+            width: 60px;
+            height: 60px;
+            background: rgba(120, 224, 143, 0.3);
             border-radius: 50%;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(120, 224, 143, 0.2);
         }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div class="score-board">Score: <span id="score">0</span></div>
-        <div class="stats">Length: <span id="length">20</span> | Time: <span id="time">00:00</span></div>
+        <div class="score-board">Lizard.io</div>
+        <div class="stats">Score: <span id="score">0</span> | Length: <span id="length">20</span> | Time: <span id="time">00:00</span></div>
     </div>
 
     <div id="minimap-container">
@@ -133,35 +131,30 @@
     </div>
 
     <div id="game-over">
-        <h1>GAME OVER</h1>
-        <p>Final Score: <span id="final-score">0</span></p>
-        <button id="restart-btn">Restart</button>
+        <h1>EXTINCT!</h1>
+        <p style="font-size: 28px; margin-bottom: 30px;">Final Score: <span id="final-score">0</span></p>
+        <button id="restart-btn">Try Again</button>
     </div>
-
-    <div id="flash"></div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script>
         // --- CONSTANTS ---
         const WORLD_SIZE = 3000;
-        const INITIAL_SEGMENTS = 20;
-        const SEGMENT_SPACING = 8;
-        const BASE_SPEED = 2.4; // Reduced by 20% from 3
-        const BOOST_SPEED = 4.8; // Reduced by 20% from 6
-        const ROTATION_SPEED = 0.08;
-        const BASE_SIZE = 12;
+        const INITIAL_SEGMENTS = 25;
+        const SEGMENT_SPACING = 6;
+        const BASE_SPEED = 2.2; 
+        const BOOST_SPEED = 4.5; 
+        const ROTATION_SPEED = 0.09;
+        const BASE_SIZE = 14;
         const FOOD_COUNT = 150;
-        const COLORS = ['#ffdd57', '#ff6b6b', '#48dbfb', '#ff9ff3', '#54a0ff'];
+        const COLORS = ['#78e08f', '#60a3bc', '#fa983a', '#eb2f06', '#f6b93b', '#b8e994'];
 
         // --- GLOBALS ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const miniCanvas = document.getElementById('minimap');
         const miniCtx = miniCanvas.getContext('2d');
-        const flashEl = document.getElementById('flash');
-        const joystickBase = document.getElementById('joystick-base');
-        const joystickKnob = document.getElementById('joystick-knob');
 
         let width, height;
         let mouseX = 0, mouseY = 0;
@@ -170,31 +163,63 @@
         let startTime = Date.now();
         let particles = [];
         let floatingTexts = [];
+        let dustParticles = [];
 
-        // Touch Control Variables
+        // Touch Control
         let isTouching = false;
         let touchStartX = 0, touchStartY = 0;
         let touchMoveX = 0, touchMoveY = 0;
 
         // --- UTILS ---
         const dist = (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        
+        function drawSmoothRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+        }
 
         // --- CLASSES ---
         class Food {
             constructor(x, y, value = 1, color = null) {
                 this.x = x || Math.random() * WORLD_SIZE;
                 this.y = y || Math.random() * WORLD_SIZE;
-                this.radius = value === 1 ? 5 : 8;
+                this.radius = value === 1 ? 6 : 10;
                 this.value = value;
                 this.color = color || COLORS[Math.floor(Math.random() * COLORS.length)];
                 this.pulseTime = Math.random() * Math.PI * 2;
             }
 
             draw(ctx, time) {
-                const pulse = 0.9 + Math.sin(time * 0.005 + this.pulseTime) * 0.1;
+                const pulse = 0.9 + Math.sin(time * 0.004 + this.pulseTime) * 0.15;
+                const r = this.radius * pulse;
+
+                // Outer glow
+                ctx.globalAlpha = 0.2;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * pulse, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, r * 2, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                // Core
+                const grad = ctx.createRadialGradient(this.x, this.y - r*0.3, 0, this.x, this.y, r);
+                grad.addColorStop(0, '#ffffff');
+                grad.addColorStop(0.3, this.color);
+                grad.addColorStop(1, 'rgba(0,0,0,0.3)');
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
                 ctx.fill();
                 ctx.closePath();
             }
@@ -223,12 +248,11 @@
 
             update(targetX, targetY, deltaTime) {
                 if (this.invincible) {
-                    this.blink = Math.floor(Date.now() / 100) % 2 === 0;
+                    this.blink = Math.floor(Date.now() / 80) % 2 === 0;
                 } else {
                     this.blink = false;
                 }
 
-                // Movement Logic
                 const dx = targetX - this.x;
                 const dy = targetY - this.y;
                 const targetAngle = Math.atan2(dy, dx);
@@ -237,14 +261,15 @@
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 this.angle += diff * ROTATION_SPEED;
 
-                const boosting = isBoosting && !this.isBot && this.segments.length > 8;
+                const boosting = isBoosting && !this.isBot && this.segments.length > 10;
                 this.speed = boosting ? BOOST_SPEED : BASE_SPEED;
 
                 if (boosting) {
                     this.boostTimer += deltaTime;
-                    if (this.boostTimer > 500) {
-                        this.targetLength = Math.max(8, this.targetLength - 1);
+                    if (this.boostTimer > 400) {
+                        this.targetLength = Math.max(10, this.targetLength - 1);
                         this.boostTimer = 0;
+                        spawnParticles(this.segments[this.segments.length-1].x, this.segments[this.segments.length-1].y, this.color, 2);
                     }
                 }
 
@@ -263,108 +288,174 @@
             }
 
             draw(ctx, time) {
-                if (this.blink) ctx.globalAlpha = 0.3;
+                if (this.blink) ctx.globalAlpha = 0.4;
 
                 const boosting = isBoosting && !this.isBot && this.speed > BASE_SPEED;
-                if (boosting) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = "#ffffff";
-                }
-
-                // Draw Body (Back to Front)
+                
+                // Draw Body Path (Ribbon style for smoothness)
                 for (let i = this.segments.length - 1; i >= 0; i--) {
                     const seg = this.segments[i];
                     const progress = i / this.segments.length;
                     
-                    // Thicker body, sharper tail tip
+                    // Improved Organic Tapering
                     let radius;
                     if (i === 0) radius = this.baseSize * 1.5;
-                    else if (progress < 0.8) radius = this.baseSize; // Maintain thickness
-                    else radius = this.baseSize * Math.max(0.1, (1 - (progress - 0.8) / 0.2) * 1.0); // Sharp tip
+                    else if (progress < 0.6) radius = this.baseSize * (1 - progress * 0.1); // Slightly tapering body
+                    else radius = this.baseSize * 0.94 * Math.max(0.1, Math.pow(1 - (progress - 0.6) / 0.4, 0.8)); // Sharp organic tail
 
                     if (i === 0) {
-                        // Lizard Head Shape
+                        // Diamond/Organic Lizard Head
                         ctx.save();
                         ctx.translate(seg.x, seg.y);
                         ctx.rotate(this.angle);
                         
+                        // Head Body
                         ctx.beginPath();
-                        // Slightly elongated head
-                        ctx.ellipse(this.baseSize * 0.4, 0, radius * 1.1, radius, 0, 0, Math.PI * 2);
-                        ctx.fillStyle = this.color;
-                        ctx.fill();
+                        ctx.moveTo(-radius*0.2, -radius*0.8);
+                        ctx.quadraticCurveTo(radius*0.8, -radius*1.0, radius*1.5, -radius*0.2);
+                        ctx.lineTo(radius*1.5, radius*0.2);
+                        ctx.quadraticCurveTo(radius*0.8, radius*1.0, -radius*0.2, radius*0.8);
                         ctx.closePath();
+                        
+                        const headGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius * 1.5);
+                        headGrad.addColorStop(0, this.color);
+                        headGrad.addColorStop(1, this.darkenColor(this.color, 30));
+                        ctx.fillStyle = headGrad;
+                        ctx.fill();
 
-                        // Eyes
-                        ctx.fillStyle = "white";
+                        // Nostrils
+                        ctx.fillStyle = "rgba(0,0,0,0.3)";
                         ctx.beginPath();
-                        ctx.arc(radius * 0.7, -radius * 0.4, radius * 0.3, 0, Math.PI * 2);
-                        ctx.arc(radius * 0.7, radius * 0.4, radius * 0.3, 0, Math.PI * 2);
+                        ctx.arc(radius*1.3, -radius*0.15, radius*0.1, 0, Math.PI*2);
+                        ctx.arc(radius*1.3, radius*0.15, radius*0.1, 0, Math.PI*2);
                         ctx.fill();
-                        ctx.fillStyle = "black";
-                        ctx.beginPath();
-                        ctx.arc(radius * 0.85, -radius * 0.4, radius * 0.15, 0, Math.PI * 2);
-                        ctx.arc(radius * 0.85, radius * 0.4, radius * 0.15, 0, Math.PI * 2);
-                        ctx.fill();
+
+                        // Detailed Eyes
+                        const drawEye = (side) => {
+                            ctx.save();
+                            ctx.translate(radius*0.6, side * radius*0.5);
+                            // Sclera
+                            ctx.fillStyle = "white";
+                            ctx.beginPath();
+                            ctx.ellipse(0, 0, radius*0.35, radius*0.25, 0, 0, Math.PI*2);
+                            ctx.fill();
+                            // Pupil
+                            ctx.fillStyle = "black";
+                            ctx.beginPath();
+                            ctx.ellipse(radius*0.1, 0, radius*0.15, radius*0.2, 0, 0, Math.PI*2);
+                            ctx.fill();
+                            // Highlight
+                            ctx.fillStyle = "rgba(255,255,255,0.8)";
+                            ctx.beginPath();
+                            ctx.arc(radius*0.05, -radius*0.05, radius*0.05, 0, Math.PI*2);
+                            ctx.fill();
+                            ctx.restore();
+                        };
+                        drawEye(1); drawEye(-1);
 
                         ctx.restore();
                     } else {
-                        // Scale Patterns (Every 3rd segment)
-                        if (i % 3 === 0 && i < this.segments.length * 0.7) {
+                        // Draw Legs (4-leg system with joints)
+                        const legSpots = [Math.floor(this.targetLength * 0.15), Math.floor(this.targetLength * 0.4)];
+                        if (legSpots.includes(i)) {
+                            this.drawPremiumLeg(ctx, seg, i, radius, time);
+                        }
+
+                        // Organic Segment Rendering
+                        const grad = ctx.createRadialGradient(seg.x - radius*0.2, seg.y - radius*0.2, 0, seg.x, seg.y, radius);
+                        grad.addColorStop(0, this.color);
+                        grad.addColorStop(1, this.darkenColor(this.color, 20));
+                        
+                        ctx.beginPath();
+                        ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
+                        ctx.fillStyle = grad;
+                        ctx.fill();
+
+                        // Scales Texture
+                        if (i % 4 === 0 && progress < 0.8) {
+                            ctx.strokeStyle = "rgba(255,255,255,0.15)";
+                            ctx.lineWidth = 1;
                             ctx.beginPath();
-                            ctx.arc(seg.x, seg.y, radius * 1.1, 0, Math.PI * 2);
-                            ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                            ctx.lineWidth = 2;
+                            ctx.arc(seg.x, seg.y, radius * 0.6, -Math.PI/4, Math.PI/4);
                             ctx.stroke();
                         }
 
-                        // Leg Animation (4 legs at front area)
-                        const legSpots = [6, 14]; // Pairs at these segments
-                        if (legSpots.includes(i)) {
-                            this.drawLegPair(ctx, seg, i, radius, time);
+                        // Boost Glow Effect
+                        if (boosting) {
+                            ctx.globalAlpha = 0.3;
+                            ctx.strokeStyle = "white";
+                            ctx.lineWidth = 4;
+                            ctx.beginPath();
+                            ctx.arc(seg.x, seg.y, radius + 2, 0, Math.PI*2);
+                            ctx.stroke();
+                            ctx.globalAlpha = 1.0;
                         }
-
-                        ctx.beginPath();
-                        ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
-                        ctx.fillStyle = this.color;
-                        ctx.fill();
-                        ctx.closePath();
                     }
                 }
-                ctx.shadowBlur = 0;
                 ctx.globalAlpha = 1.0;
             }
 
-            drawLegPair(ctx, seg, index, radius, time) {
+            drawPremiumLeg(ctx, seg, index, radius, time) {
                 const speedFactor = this.speed / BASE_SPEED;
-                const oscillation = Math.sin(time * 0.01 * speedFactor + index) * 6;
+                const swing = Math.sin(time * 0.008 * speedFactor + index * 0.5);
+                
                 ctx.strokeStyle = this.color;
-                ctx.lineWidth = 4;
+                ctx.lineWidth = radius * 0.4;
                 ctx.lineCap = "round";
+                ctx.lineJoin = "round";
                 
-                const legAngle = this.angle + Math.PI/2;
-                const legLen = radius + 8 + oscillation;
-                
-                // Left & Right Legs
                 [1, -1].forEach(side => {
-                    const currentAngle = this.angle + (side * Math.PI/2) + (oscillation * 0.05);
+                    const baseAngle = this.angle + (side * Math.PI/2.2);
+                    const dynamicAngle = baseAngle + (swing * side * 0.4);
+                    
+                    const thighLen = radius * 0.8;
+                    const shinLen = radius * 0.7;
+                    
+                    const elbowX = seg.x + Math.cos(dynamicAngle) * thighLen;
+                    const elbowY = seg.y + Math.sin(dynamicAngle) * thighLen;
+                    
+                    const footAngle = dynamicAngle + (side * 0.8);
+                    const footX = elbowX + Math.cos(footAngle) * shinLen;
+                    const footY = elbowY + Math.sin(footAngle) * shinLen;
+                    
+                    // Joint 1: Thigh
                     ctx.beginPath();
                     ctx.moveTo(seg.x, seg.y);
-                    // Two joints for a more "lizard" leg look
-                    const elbowX = seg.x + Math.cos(currentAngle) * (radius + 4);
-                    const elbowY = seg.y + Math.sin(currentAngle) * (radius + 4);
-                    const footX = elbowX + Math.cos(currentAngle + (side * 0.5)) * 8;
-                    const footY = elbowY + Math.sin(currentAngle + (side * 0.5)) * 8;
-                    
                     ctx.lineTo(elbowX, elbowY);
+                    ctx.stroke();
+                    
+                    // Joint 2: Shin
+                    ctx.beginPath();
+                    ctx.moveTo(elbowX, elbowY);
                     ctx.lineTo(footX, footY);
                     ctx.stroke();
+                    
+                    // Claws
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+                    for(let a = -0.4; a <= 0.4; a += 0.4) {
+                        ctx.beginPath();
+                        ctx.moveTo(footX, footY);
+                        ctx.lineTo(footX + Math.cos(footAngle + a) * 5, footY + Math.sin(footAngle + a) * 5);
+                        ctx.stroke();
+                    }
+                    ctx.lineWidth = radius * 0.4;
+                    ctx.strokeStyle = this.color;
                 });
             }
 
+            darkenColor(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16),
+                    amt = Math.round(2.55 * percent),
+                    R = (num >> 16) - amt,
+                    G = (num >> 8 & 0x00FF) - amt,
+                    B = (num & 0x0000FF) - amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 0 ? 0 : R : 255) * 0x10000 + (G < 255 ? G < 0 ? 0 : G : 255) * 0x100 + (B < 255 ? B < 0 ? 0 : B : 255)).toString(16).slice(1);
+            }
+
             die() {
-                this.segments.forEach(seg => {
-                    foods.push(new Food(seg.x, seg.y, 1, this.color));
+                this.segments.forEach((seg, i) => {
+                    if (i % 2 === 0) foods.push(new Food(seg.x, seg.y, 1, this.color));
                 });
                 if (this.isBot) {
                     bots = bots.filter(b => b.id !== this.id);
@@ -374,225 +465,195 @@
 
             onCollision() {
                 if (this.invincible) return;
-                if (this.segments.length <= 8) {
+                if (this.segments.length <= 10) {
                     if (!this.isBot) gameOver();
                     else this.die();
                     return;
                 }
                 const cutLength = Math.floor(this.segments.length / 2);
                 const removed = this.segments.splice(this.segments.length - cutLength, cutLength);
-                removed.forEach(seg => {
-                    foods.push(new Food(seg.x, seg.y, 2, this.color));
-                    spawnParticles(seg.x, seg.y, this.color);
+                removed.forEach((seg, i) => {
+                    if (i % 2 === 0) foods.push(new Food(seg.x, seg.y, 2, this.color));
+                    spawnParticles(seg.x, seg.y, this.color, 3);
                 });
                 this.targetLength = this.segments.length;
                 this.score = Math.floor(this.score / 2);
                 this.invincible = true;
-                if (!this.isBot) triggerFlash();
+                if (!this.isBot) triggerScreenShake();
                 setTimeout(() => this.invincible = false, 1500);
             }
         }
 
-        // --- GAME ENGINE ---
-        let player = new Lizard(WORLD_SIZE / 2, WORLD_SIZE / 2, '#55aa55');
+        // --- WORLD ---
+        let player = new Lizard(WORLD_SIZE / 2, WORLD_SIZE / 2, '#78e08f');
         let foods = [];
         let bots = [];
+        let shake = 0;
 
         function init() {
             foods = [];
             for (let i = 0; i < FOOD_COUNT; i++) foods.push(new Food());
+            
             bots = [];
-            for (let i = 0; i < 5; i++) bots.push(new Lizard(Math.random() * WORLD_SIZE, Math.random() * WORLD_SIZE, COLORS[i], true));
+            for (let i = 0; i < 6; i++) {
+                bots.push(new Lizard(Math.random() * WORLD_SIZE, Math.random() * WORLD_SIZE, COLORS[i % COLORS.length], true));
+            }
 
-            window.addEventListener('resize', resize);
-            resize();
+            dustParticles = [];
+            for(let i=0; i<100; i++) dustParticles.push({x: Math.random()*WORLD_SIZE, y: Math.random()*WORLD_SIZE, s: Math.random()*2});
 
-            // Desktop Mouse
-            window.addEventListener('mousemove', e => {
-                if (!isTouching) {
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                }
-            });
+            window.addEventListener('resize', resize); resize();
 
-            // Mobile Touch Joystick
+            // Inputs
+            window.addEventListener('mousemove', e => { if (!isTouching) { mouseX = e.clientX; mouseY = e.clientY; } });
+
+            const joystickKnobEl = document.getElementById('joystick-knob');
+            const joystickBaseEl = document.getElementById('joystick-base');
+
             window.addEventListener('touchstart', e => {
-                if (e.target.id === 'boost-btn') return;
+                if (e.target.id === 'boost-btn' || e.target.id === 'restart-btn') return;
                 isTouching = true;
                 const touch = e.touches[0];
-                touchStartX = touch.clientX;
-                touchStartY = touch.clientY;
-                
-                joystickBase.style.display = 'block';
-                joystickBase.style.left = touchStartX + 'px';
-                joystickBase.style.top = touchStartY + 'px';
-                updateJoystickKnob(0, 0);
+                touchStartX = touch.clientX; touchStartY = touch.clientY;
+                joystickBaseEl.style.display = 'block';
+                joystickBaseEl.style.left = touchStartX + 'px';
+                joystickBaseEl.style.top = touchStartY + 'px';
+                joystickKnobEl.style.transform = `translate(-50%, -50%)`;
             }, { passive: false });
 
             window.addEventListener('touchmove', e => {
                 if (!isTouching) return;
                 const touch = e.touches[0];
-                touchMoveX = touch.clientX - touchStartX;
-                touchMoveY = touch.clientY - touchStartY;
-                
+                let dx = touch.clientX - touchStartX;
+                let dy = touch.clientY - touchStartY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
                 const limit = 50;
-                const distance = Math.sqrt(touchMoveX**2 + touchMoveY**2);
-                if (distance > limit) {
-                    touchMoveX = (touchMoveX / distance) * limit;
-                    touchMoveY = (touchMoveY / distance) * limit;
-                }
-                
-                updateJoystickKnob(touchMoveX, touchMoveY);
-                // Translate relative movement to screen coordinates for target
-                mouseX = width / 2 + touchMoveX * 5; 
-                mouseY = height / 2 + touchMoveY * 5;
+                if (dist > limit) { dx = (dx/dist)*limit; dy = (dy/dist)*limit; }
+                joystickKnobEl.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+                mouseX = width/2 + dx * 10; mouseY = height/2 + dy * 10;
             }, { passive: false });
 
-            window.addEventListener('touchend', e => {
-                isTouching = false;
-                joystickBase.style.display = 'none';
-            });
-
-            function updateJoystickKnob(x, y) {
-                joystickKnob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-            }
+            window.addEventListener('touchend', () => { isTouching = false; joystickBaseEl.style.display = 'none'; });
 
             window.addEventListener('keydown', e => { if (e.code === 'Space') isBoosting = true; });
             window.addEventListener('keyup', e => { if (e.code === 'Space') isBoosting = false; });
 
-            const boostBtn = document.getElementById('boost-btn');
-            boostBtn.addEventListener('touchstart', e => { e.stopPropagation(); isBoosting = true; }, { passive: false });
-            boostBtn.addEventListener('touchend', () => isBoosting = false);
-
+            document.getElementById('boost-btn').addEventListener('touchstart', e => { e.stopPropagation(); isBoosting = true; });
+            document.getElementById('boost-btn').addEventListener('touchend', () => { isBoosting = false; });
             document.getElementById('restart-btn').onclick = () => location.reload();
+
             requestAnimationFrame(loop);
         }
 
         function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            miniCanvas.width = 100;
-            miniCanvas.height = 100;
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+            miniCanvas.width = 120; miniCanvas.height = 120;
         }
 
-        function spawnParticles(x, y, color) {
-            for (let i = 0; i < 5; i++) particles.push({ x, y, vx: (Math.random() - 0.5) * 4, vy: (Math.random() - 0.5) * 4, life: 1.0, color });
-        }
-
-        function spawnFloatingText(x, y, text) { floatingTexts.push({ x, y, text, life: 1.0 }); }
-
-        function triggerFlash() { flashEl.style.opacity = '0.3'; setTimeout(() => flashEl.style.opacity = '0', 500); }
-
-        function checkCollision(head, segments) {
-            for (let i = 0; i < segments.length; i++) {
-                if (dist(head.x, head.y, segments[i].x, segments[i].y) < 15) return true;
+        function spawnParticles(x, y, color, count=5) {
+            for (let i = 0; i < count; i++) {
+                particles.push({ x, y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 1.0, color, size: Math.random()*4+2 });
             }
-            return false;
         }
 
-        function gameOver() {
-            gameActive = false;
-            document.getElementById('game-over').style.display = 'flex';
-            document.getElementById('final-score').innerText = player.score;
-        }
+        function triggerScreenShake() { shake = 15; }
 
-        let lastTime = Date.now();
         function loop() {
             if (!gameActive) return;
             const now = Date.now();
-            const dt = now - lastTime;
-            lastTime = now;
+            const dt = 16.6; 
 
+            // Physics Update
             const targetX = player.x + (mouseX - width / 2);
             const targetY = player.y + (mouseY - height / 2);
             player.update(targetX, targetY, dt);
 
             bots.forEach(bot => {
-                let target = { x: WORLD_SIZE/2, y: WORLD_SIZE/2 };
-                let minFDist = 500;
-                foods.forEach(f => {
-                    const d = dist(bot.x, bot.y, f.x, f.y);
-                    if (d < minFDist) { minFDist = d; target = f; }
-                });
-                if (dist(bot.x, bot.y, player.x, player.y) < 200) {
+                let nearestF = null, minD = 400;
+                foods.forEach(f => { const d = dist(bot.x, bot.y, f.x, f.y); if(d < minD) { minD = d; nearestF = f; } });
+                let tx = nearestF ? nearestF.x : WORLD_SIZE/2, ty = nearestF ? nearestF.y : WORLD_SIZE/2;
+                if (dist(bot.x, bot.y, player.x, player.y) < 250) {
                     const angle = Math.atan2(bot.y - player.y, bot.x - player.x);
-                    target = { x: bot.x + Math.cos(angle)*100, y: bot.y + Math.sin(angle)*100 };
+                    tx = bot.x + Math.cos(angle)*150; ty = bot.y + Math.sin(angle)*150;
                 }
-                if (bot.x < 100 || bot.x > WORLD_SIZE-100 || bot.y < 100 || bot.y > WORLD_SIZE-100) target = { x: WORLD_SIZE/2, y: WORLD_SIZE/2 };
-                bot.update(target.x, target.y, dt);
+                bot.update(tx, ty, dt);
             });
 
-            [player, ...bots].forEach(liz => {
-                const head = liz.segments[0];
-                for (let i = foods.length - 1; i >= 0; i--) {
-                    const f = foods[i];
-                    if (dist(head.x, head.y, f.x, f.y) < (liz.baseSize * 1.5 + f.radius)) {
-                        liz.score += f.value;
-                        liz.targetLength += f.value === 1 ? 1 : 2;
-                        foods.splice(i, 1);
-                        foods.push(new Food());
-                        if (liz === player) { spawnParticles(f.x, f.y, f.color); spawnFloatingText(f.x, f.y, "+1"); }
-                    }
-                }
-            });
-
+            // Collisions
             const all = [player, ...bots];
             all.forEach(liz => {
                 const head = liz.segments[0];
+                // Food
+                for (let i = foods.length-1; i>=0; i--) {
+                    const f = foods[i];
+                    if (dist(head.x, head.y, f.x, f.y) < (liz.baseSize*1.5 + f.radius)) {
+                        liz.score += f.value;
+                        liz.targetLength += f.value === 1 ? 1 : 2;
+                        foods.splice(i, 1); foods.push(new Food());
+                        if (liz === player) spawnParticles(f.x, f.y, f.color, 3);
+                    }
+                }
+                // Body
                 all.forEach(other => {
                     if (liz === other) return;
-                    if (checkCollision(head, other.segments)) liz.onCollision();
+                    for (let i=0; i<other.segments.length; i+=2) {
+                        if (dist(head.x, head.y, other.segments[i].x, other.segments[i].y) < 18) { liz.onCollision(); break; }
+                    }
                 });
             });
 
-            particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.03; });
-            particles = particles.filter(p => p.life > 0);
-            floatingTexts.forEach(t => { t.y -= 1; t.life -= 0.02; });
-            floatingTexts = floatingTexts.filter(t => t.life > 0);
-
-            ctx.fillStyle = '#1a2e1a';
+            // Render
+            ctx.fillStyle = '#0a140a';
             ctx.fillRect(0, 0, width, height);
+
             ctx.save();
+            if (shake > 0) { ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake *= 0.9; }
             ctx.translate(width / 2 - player.x, height / 2 - player.y);
 
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            // Deep Background Grid
+            ctx.strokeStyle = 'rgba(120, 224, 143, 0.03)';
             ctx.lineWidth = 1;
-            for (let x = 0; x <= WORLD_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_SIZE); ctx.stroke(); }
-            for (let y = 0; y <= WORLD_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_SIZE, y); ctx.stroke(); }
+            for (let x = 0; x <= WORLD_SIZE; x += 150) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_SIZE); ctx.stroke(); }
+            for (let y = 0; y <= WORLD_SIZE; y += 150) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_SIZE, y); ctx.stroke(); }
 
-            ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 5;
-            const dBorder = Math.min(player.x, WORLD_SIZE - player.x, player.y, WORLD_SIZE - player.y);
-            ctx.globalAlpha = dBorder < 100 ? 1.0 : 0.3;
+            // Border
+            ctx.strokeStyle = '#eb2f06'; ctx.lineWidth = 8;
+            ctx.globalAlpha = dist(player.x, player.y, WORLD_SIZE/2, WORLD_SIZE/2) > WORLD_SIZE/2 - 200 ? 1.0 : 0.2;
             ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE); ctx.globalAlpha = 1.0;
+
+            // Ambient Dust
+            ctx.fillStyle = "rgba(255,255,255,0.1)";
+            dustParticles.forEach(d => ctx.fillRect(d.x, d.y, d.s, d.s));
 
             foods.forEach(f => f.draw(ctx, now));
             bots.forEach(b => b.draw(ctx, now));
             player.draw(ctx, now);
 
-            particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); });
-            floatingTexts.forEach(t => { ctx.globalAlpha = t.life; ctx.fillStyle = "white"; ctx.font = "bold 16px sans-serif"; ctx.fillText(t.text, t.x, t.y); });
+            particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
+            particles = particles.filter(p => p.life > 0);
             ctx.globalAlpha = 1.0;
             ctx.restore();
 
+            // UI
             document.getElementById('score').innerText = player.score;
             document.getElementById('length').innerText = player.segments.length;
             const elapsed = Math.floor((now - startTime) / 1000);
-            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const secs = String(elapsed % 60).padStart(2, '0');
-            document.getElementById('time').innerText = `${mins}:${secs}`;
+            document.getElementById('time').innerText = `${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`;
 
-            miniCtx.fillStyle = 'rgba(0,0,0,0.5)';
-            miniCtx.fillRect(0, 0, 100, 100);
-            const s = 100 / WORLD_SIZE;
-            miniCtx.fillStyle = 'white'; foods.forEach(f => miniCtx.fillRect(f.x*s, f.y*s, 1, 1));
-            miniCtx.fillStyle = 'red'; bots.forEach(b => miniCtx.fillRect(b.x*s, b.y*s, 2, 2));
-            miniCtx.fillStyle = '#00ff00'; miniCtx.fillRect(player.x*s, player.y*s, 3, 3);
-            miniCtx.strokeStyle = 'white'; miniCtx.strokeRect((player.x - width/2)*s, (player.y - height/2)*s, width*s, height*s);
+            // Minimap
+            miniCtx.fillStyle = 'rgba(0,0,0,0.8)'; miniCtx.fillRect(0, 0, 120, 120);
+            const s = 120 / WORLD_SIZE;
+            miniCtx.fillStyle = 'rgba(255,255,255,0.2)'; foods.forEach(f => miniCtx.fillRect(f.x*s, f.y*s, 1, 1));
+            miniCtx.fillStyle = '#ff6b6b'; bots.forEach(b => miniCtx.fillRect(b.x*s, b.y*s, 3, 3));
+            miniCtx.fillStyle = '#78e08f'; miniCtx.fillRect(player.x*s, player.y*s, 5, 5);
+            miniCtx.strokeStyle = 'rgba(255,255,255,0.4)'; miniCtx.strokeRect((player.x - width/2)*s, (player.y - height/2)*s, width*s, height*s);
 
             requestAnimationFrame(loop);
         }
+
+        function gameOver() { gameActive = false; document.getElementById('game-over').style.display = 'flex'; document.getElementById('final-score').innerText = player.score; }
+        
         init();
     </script>
 </body>
