@@ -1,15 +1,33 @@
 import { Game } from './engine/Game';
 
-window.addEventListener('load', () => {
+console.log('Lizard.io: main.ts executing');
+
+const init = () => {
+  console.log('Lizard.io: DOM loaded');
   const startOverlay = document.getElementById('startOverlay');
   const startBtn = document.getElementById('startBtn');
-  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+  
+  if (!startBtn || !startOverlay) {
+    console.error('Lizard.io: Required UI elements not found!');
+    return;
+  }
 
-  if (startBtn && startOverlay) {
-    startBtn.addEventListener('click', () => {
+  startBtn.onclick = () => {
+    console.log('Lizard.io: Start button clicked');
+    try {
       startOverlay.style.display = 'none';
       const game = new Game('gameCanvas');
       game.loop();
-    });
-  }
-});
+      console.log('Lizard.io: Game loop started');
+    } catch (err) {
+      console.error('Lizard.io: Failed to start game:', err);
+      alert('Game failed to start. Check console for details.');
+    }
+  };
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

@@ -75,6 +75,12 @@
       #startBtn:hover { background: #66cc66; }
       .controls-hint { margin-top: 20px; font-size: 0.9rem; opacity: 0.7; }
     </style>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="./src/main.ts"></script>
+    <script>
+      console.log('Lizard.io: Index.html loaded');
+      window.onerror = function(msg, url, line) {
+        console.error('Lizard.io Global Error:', msg, 'at', url, ':', line);
+      };
+    </script>
   </body>
 </html>
