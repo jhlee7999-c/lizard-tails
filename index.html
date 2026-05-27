@@ -43,8 +43,7 @@
         #boost-btn {
             position: absolute;
             bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 40px;
             width: 80px;
             height: 80px;
             background: rgba(85, 170, 85, 0.5);
@@ -363,6 +362,16 @@
                 mouseY = e.clientY;
             });
 
+            // Touch Support for Movement
+            const handleTouch = e => {
+                if (e.touches.length > 0) {
+                    mouseX = e.touches[0].clientX;
+                    mouseY = e.touches[0].clientY;
+                }
+            };
+            window.addEventListener('touchstart', handleTouch, { passive: false });
+            window.addEventListener('touchmove', handleTouch, { passive: false });
+
             window.addEventListener('keydown', e => {
                 if (e.code === 'Space') isBoosting = true;
             });
@@ -371,8 +380,13 @@
             });
 
             const boostBtn = document.getElementById('boost-btn');
-            boostBtn.addEventListener('touchstart', () => isBoosting = true);
-            boostBtn.addEventListener('touchend', () => isBoosting = false);
+            boostBtn.addEventListener('touchstart', (e) => {
+                e.stopPropagation(); // Prevent movement update from button touch
+                isBoosting = true;
+            }, { passive: false });
+            boostBtn.addEventListener('touchend', (e) => {
+                isBoosting = false;
+            }, { passive: false });
 
             document.getElementById('restart-btn').onclick = () => location.reload();
 
