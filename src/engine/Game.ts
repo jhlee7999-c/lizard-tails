@@ -14,17 +14,30 @@ export class Game {
   private gameOver: boolean = false;
 
   constructor(canvasId: string) {
-    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    this.ctx = this.canvas.getContext('2d', { alpha: false })!; // Performance optimization
+    console.log('Game: Constructor started');
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+    if (!canvas) throw new Error(`Canvas with id ${canvasId} not found`);
+    
+    this.canvas = canvas;
+    const context = this.canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('Could not get 2D context');
+    
+    this.ctx = context;
     this.scoreElement = document.getElementById('score');
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
 
+    console.log('Game: Initializing player');
     this.player = new Lizard(CONFIG.WORLD_SIZE / 2, CONFIG.WORLD_SIZE / 2, COLORS.PLAYER);
     
+    console.log('Game: Initializing world');
     this.initWorld();
+    
+    console.log('Game: Setting up input');
     this.setupInput();
+    
+    this.lastTime = performance.now();
   }
 
   private resize() {
@@ -55,24 +68,23 @@ export class Game {
   }
 
   private setupInput() {
-    window.addEventListener('keydown', (e) => {
-      this.keys.add(e.code);
-      if (e.code === 'Space') this.player.isBoosted = true;
-    });
+    const handleKey = (e: KeyboardEvent, isDown: boolean) => {
+      if (isDown) this.keys.add(e.code);
+      else this.keys.delete(e.code);
+      
+      if (e.code === 'Space') this.player.isBoosted = isDown;
+    };
 
-    window.addEventListener('keyup', (e) => {
-      this.keys.delete(e.code);
-      if (e.code === 'Space') this.player.isBoosted = false;
-    });
+    window.addEventListener('keydown', (e) => handleKey(e, true));
+    window.addEventListener('keyup', (e) => handleKey(e, false));
   }
 
   private update(deltaTime: number) {
     if (this.gameOver) return;
 
-    // 1. Player Keyboard Control
+    // Movement
     let moveX = 0;
     let moveY = 0;
-
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) moveY -= 1;
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) moveY += 1;
     if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) moveX -= 1;
@@ -85,12 +97,12 @@ export class Game {
     
     this.player.update(deltaTime, targetAngle);
 
-    // 2. Update Bots
+    // Bots
     this.bots.forEach(bot => {
       let nearestFood: Food | null = null;
-      let minDist = 500;
+      let minDist = 300;
       this.foods.forEach(f => {
-        const d = Math.sqrt((f.x - bot.x) ** 2 + (f.y - bot.y) ** 2);
+        const d = Math.abs(f.x - bot.x) + Math.abs(f.y - bot.y); // Fast distance
         if (d < minDist) {
           minDist = d;
           nearestFood = f;
@@ -112,13 +124,14 @@ export class Game {
 
     this.checkCollisions();
 
+    // Boundary check
     if (this.player.x < 0 || this.player.x > CONFIG.WORLD_SIZE || 
         this.player.y < 0 || this.player.y > CONFIG.WORLD_SIZE) {
       this.doGameOver();
     }
 
     if (this.scoreElement) {
-      this.scoreElement.innerText = `${this.player.score} (Length: ${this.player.segments.length})`;
+      this.scoreElement.innerText = `${this.player.score}`;
     }
   }
 
@@ -129,23 +142,25 @@ export class Game {
       const head = liz.segments[0];
       if (!head) return;
 
+      // Food
       for (let i = this.foods.length - 1; i >= 0; i--) {
         const food = this.foods[i];
         const dist = Math.sqrt((head.x - food.x) ** 2 + (head.y - food.y) ** 2);
-        if (dist < CONFIG.BASE_SIZE * 1.4 + food.radius) {
+        if (dist < CONFIG.BASE_SIZE * 2 + food.radius) {
           liz.grow(food.value === 1 ? CONFIG.GROWTH_PER_FOOD : CONFIG.GROWTH_PER_FOOD * 2);
           this.foods.splice(i, 1);
           if (food.value === 1) this.spawnFood();
         }
       }
 
+      // Body
       if (!liz.invincible) {
         allLizards.forEach(other => {
-          const startIdx = (liz.id === other.id) ? 10 : 0;
-          for (let i = startIdx; i < other.segments.length; i++) {
+          const startIdx = (liz.id === other.id) ? 12 : 0;
+          for (let i = startIdx; i < other.segments.length; i += 2) { // Optimization: check every 2nd segment
             const seg = other.segments[i];
             const dist = Math.sqrt((head.x - seg.x) ** 2 + (head.y - seg.y) ** 2);
-            if (dist < 12) {
+            if (dist < 15) {
               this.handleCollision(liz);
               return;
             }
@@ -175,12 +190,12 @@ export class Game {
     const flash = document.createElement('div');
     Object.assign(flash.style, {
       position: 'absolute', top: '0', left: '0', width: '100%', height: '100%',
-      backgroundColor: 'rgba(255, 0, 0, 0.3)', pointerEvents: 'none', transition: 'opacity 0.5s'
+      backgroundColor: 'rgba(255, 0, 0, 0.2)', pointerEvents: 'none', zIndex: '5', transition: 'opacity 0.4s'
     });
     document.body.appendChild(flash);
     setTimeout(() => {
       flash.style.opacity = '0';
-      setTimeout(() => document.body.removeChild(flash), 500);
+      setTimeout(() => document.body.removeChild(flash), 400);
     }, 50);
   }
 
@@ -189,14 +204,14 @@ export class Game {
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
       position: 'absolute', top: '0', left: '0', width: '100%', height: '100%',
-      backgroundColor: 'rgba(0, 0, 0, 0.7)', color: 'white', display: 'flex',
-      flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: '100'
+      backgroundColor: 'rgba(0, 0, 0, 0.8)', color: 'white', display: 'flex',
+      flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: '2000'
     });
 
     overlay.innerHTML = `
-      <h1>Game Over</h1>
-      <p>Score: ${this.player.score}</p>
-      <button id="restartBtn" style="padding: 10px 20px; font-size: 1.2rem; cursor: pointer;">Restart</button>
+      <h1 style="font-size: 3rem; color: #ff4444;">GAME OVER</h1>
+      <p style="font-size: 1.5rem; margin-bottom: 30px;">Final Score: ${this.player.score}</p>
+      <button id="restartBtn" style="padding: 15px 40px; font-size: 1.2rem; cursor: pointer; background: #55aa55; color: white; border: none; border-radius: 5px;">Restart</button>
     `;
     document.body.appendChild(overlay);
     document.getElementById('restartBtn')?.addEventListener('click', () => location.reload());
@@ -212,7 +227,7 @@ export class Game {
 
     this.drawGrid();
     this.ctx.strokeStyle = COLORS.BORDER;
-    this.ctx.lineWidth = 5;
+    this.ctx.lineWidth = 10;
     this.ctx.strokeRect(0, 0, CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE);
 
     this.foods.forEach(f => f.draw(this.ctx, time));
@@ -226,7 +241,7 @@ export class Game {
   private drawGrid() {
     this.ctx.strokeStyle = COLORS.GRID;
     this.ctx.lineWidth = 1;
-    const size = 100;
+    const size = 200;
     this.ctx.beginPath();
     for (let x = 0; x <= CONFIG.WORLD_SIZE; x += size) {
       this.ctx.moveTo(x, 0); this.ctx.lineTo(x, CONFIG.WORLD_SIZE);
@@ -243,23 +258,23 @@ export class Game {
     const x = this.canvas.width - size - padding;
     const y = padding;
 
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(x, y, size, size);
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    this.ctx.lineWidth = 1;
+    this.ctx.lineWidth = 2;
     this.ctx.strokeRect(x, y, size, size);
 
     const scale = size / CONFIG.WORLD_SIZE;
-    this.ctx.fillStyle = 'white';
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     this.foods.forEach(f => this.ctx.fillRect(x + f.x * scale, y + f.y * scale, 1, 1));
-    this.ctx.fillStyle = 'red';
-    this.bots.forEach(b => this.ctx.fillRect(x + b.x * scale, y + b.y * scale, 2, 2));
+    this.ctx.fillStyle = '#ff4444';
+    this.bots.forEach(b => this.ctx.fillRect(x + b.x * scale, y + b.y * scale, 3, 3));
     this.ctx.fillStyle = '#00ff00';
-    this.ctx.fillRect(x + this.player.x * scale, y + this.player.y * scale, 3, 3);
+    this.ctx.fillRect(x + this.player.x * scale, y + this.player.y * scale, 4, 4);
 
     const viewW = this.canvas.width * scale;
     const viewH = this.canvas.height * scale;
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
     this.ctx.strokeRect(
       x + (this.player.x - this.canvas.width/2) * scale,
       y + (this.player.y - this.canvas.height/2) * scale,
@@ -268,8 +283,11 @@ export class Game {
   }
 
   public loop(timestamp: number = 0) {
-    const deltaTime = timestamp - this.lastTime;
+    if (this.gameOver) return;
+    
+    const deltaTime = Math.min(timestamp - this.lastTime, 100); // Cap deltaTime to prevent huge jumps
     this.lastTime = timestamp;
+    
     this.update(deltaTime);
     this.draw();
     requestAnimationFrame((t) => this.loop(t));

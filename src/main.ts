@@ -1,57 +1,45 @@
 import { Game } from './engine/Game';
 
-console.log('Lizard.io: main.ts executing');
+console.log('Lizard.io: main.ts module loaded');
 
-const init = () => {
+const startGame = () => {
   const startOverlay = document.getElementById('startOverlay');
   const startBtn = document.getElementById('startBtn') as HTMLButtonElement;
   const loadingMessage = document.getElementById('loadingMessage');
-  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   
-  if (!startBtn || !startOverlay || !canvas) {
-    const errorMsg = 'Lizard.io: Critical UI elements missing!';
-    console.error(errorMsg);
-    alert(errorMsg);
+  if (!startBtn || !startOverlay) {
+    console.error('Lizard.io: UI elements missing');
     return;
   }
 
-  startBtn.onclick = () => {
+  startBtn.addEventListener('click', () => {
     console.log('Lizard.io: Play button clicked');
     
-    // UI Feedback: Disable button and show loading
-    startBtn.disabled = true;
-    startBtn.style.opacity = '0.5';
+    startBtn.style.display = 'none';
     if (loadingMessage) loadingMessage.style.display = 'block';
 
-    // Delay slightly to allow UI to update before heavy initialization
+    // Give browser a moment to render the loading state
     setTimeout(() => {
       try {
-        console.log('Lizard.io: Initializing Game Engine...');
+        console.log('Lizard.io: Starting Game instance');
         const game = new Game('gameCanvas');
         
-        // Final check before hiding overlay
-        if (game) {
-          console.log('Lizard.io: Game initialized, starting loop');
-          startOverlay.style.display = 'none';
-          game.loop();
-        } else {
-          throw new Error('Game object creation failed');
-        }
-      } catch (err) {
-        console.error('Lizard.io: Initialization failed:', err);
-        alert(`Failed to start game: ${err.message}\nCheck browser console for more details.`);
-        
-        // Re-enable button on failure
-        startBtn.disabled = false;
-        startBtn.style.opacity = '1.0';
+        console.log('Lizard.io: Game loop beginning');
+        startOverlay.style.display = 'none';
+        game.loop();
+      } catch (err: any) {
+        console.error('Lizard.io: Init error', err);
+        alert('Initialization Error: ' + err.message);
+        startBtn.style.display = 'block';
         if (loadingMessage) loadingMessage.style.display = 'none';
       }
-    }, 100);
-  };
+    }, 50);
+  });
 };
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+// Start script
+if (document.readyState === 'complete') {
+  startGame();
 } else {
-  init();
+  window.addEventListener('load', startGame);
 }

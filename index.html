@@ -10,6 +10,7 @@
         overflow: hidden;
         background-color: #1a1a1a;
         font-family: sans-serif;
+        color: white;
       }
       canvas {
         display: block;
@@ -21,7 +22,50 @@
         color: white;
         pointer-events: none;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        z-index: 10;
       }
+      #startOverlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .menu-box {
+        background: #2d5a2d;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0,255,0,0.3);
+        border: 4px solid #55aa55;
+        max-width: 400px;
+        width: 90%;
+      }
+      h1 { font-size: 3.5rem; margin: 0 0 20px 0; color: #55aa55; }
+      input {
+        display: block; width: 100%; padding: 12px; margin-bottom: 20px;
+        background: #1a1a1a; border: 2px solid #55aa55; color: white;
+        font-size: 1.1rem; border-radius: 5px; box-sizing: border-box;
+      }
+      #startBtn {
+        width: 100%; padding: 15px; font-size: 1.4rem;
+        background: #55aa55; border: none; color: white;
+        cursor: pointer; border-radius: 5px; font-weight: bold;
+        transition: transform 0.1s, background 0.2s;
+      }
+      #startBtn:hover { background: #66cc66; transform: scale(1.02); }
+      #startBtn:active { transform: scale(0.98); }
+      
+      .spinner {
+        width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
+        border-top: 4px solid #55aa55; border-radius: 50%;
+        animation: spin 1s linear infinite; margin: 20px auto 10px;
+      }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      
+      .controls-hint { margin-top: 25px; font-size: 0.9rem; opacity: 0.8; line-height: 1.5; }
     </style>
   </head>
   <body>
@@ -32,64 +76,27 @@
     <div id="startOverlay">
       <div class="menu-box">
         <h1>Lizard.io</h1>
-        <input type="text" id="nickname" placeholder="Enter Nickname" maxlength="15">
+        <input type="text" id="nickname" placeholder="Enter Nickname" maxlength="15" value="LizardPlayer">
         <button id="startBtn">Play Game</button>
-        <div id="loadingMessage" style="display: none; margin-top: 20px;">
+        <div id="loadingMessage" style="display: none;">
           <div class="spinner"></div>
           <p>Initializing World...</p>
         </div>
         <div class="controls-hint">
-          <p>WASD / Arrows: Move</p>
-          <p>Space: Boost (Costs tail)</p>
+          <p><strong>WASD / Arrows</strong> to Move</p>
+          <p><strong>Space</strong> to Boost (Costs length)</p>
         </div>
-        </div>
-        </div>
+      </div>
+    </div>
 
-        <canvas id="gameCanvas"></canvas>
-        <style>
-        .spinner {
-        width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3);
-        border-top: 4px solid #55aa55; border-radius: 50%;
-        animation: spin 1s linear infinite; margin: 0 auto 10px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #startOverlay {
-        ...
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        color: white;
-      }
-      .menu-box {
-        background: #2d5a2d;
-        padding: 40px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 0 30px rgba(0,255,0,0.2);
-        border: 4px solid #55aa55;
-      }
-      h1 { font-size: 4rem; margin-bottom: 20px; color: #55aa55; }
-      input {
-        display: block; width: 100%; padding: 10px; margin-bottom: 20px;
-        background: #1a1a1a; border: 2px solid #55aa55; color: white;
-        font-size: 1.2rem; border-radius: 5px; box-sizing: border-box;
-      }
-      #startBtn {
-        width: 100%; padding: 15px; font-size: 1.5rem;
-        background: #55aa55; border: none; color: white;
-        cursor: pointer; border-radius: 5px; font-weight: bold;
-      }
-      #startBtn:hover { background: #66cc66; }
-      .controls-hint { margin-top: 20px; font-size: 0.9rem; opacity: 0.7; }
-    </style>
-    <script type="module" src="./src/main.ts"></script>
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module" src="/src/main.ts"></script>
     <script>
-      console.log('Lizard.io: Index.html loaded');
-      window.onerror = function(msg, url, line) {
-        console.error('Lizard.io Global Error:', msg, 'at', url, ':', line);
+      console.log('Lizard.io: Page loaded');
+      window.onerror = function(msg, url, line, col, error) {
+        alert('Global Error: ' + msg + '\nLine: ' + line);
+        return false;
       };
     </script>
   </body>
