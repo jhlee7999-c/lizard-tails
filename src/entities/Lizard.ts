@@ -33,19 +33,17 @@ export class Lizard {
     }
   }
 
-  update(targetX: number, targetY: number, deltaTime: number) {
-    // 1. Calculate target angle
-    const dx = targetX - this.x;
-    const dy = targetY - this.y;
-    const targetAngle = Math.atan2(dy, dx);
+  // Updated to accept target angle directly or keyboard inputs
+  update(deltaTime: number, targetAngle?: number) {
+    // 1. Smooth rotation
+    if (targetAngle !== undefined) {
+      let angleDiff = targetAngle - this.angle;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      this.angle += angleDiff * CONFIG.ROTATION_SPEED;
+    }
 
-    // 2. Smooth rotation (lerp-like)
-    let angleDiff = targetAngle - this.angle;
-    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-    this.angle += angleDiff * CONFIG.ROTATION_SPEED;
-
-    // 3. Movement
+    // 2. Movement
     this.speed = this.isBoosted && this.segments.length > CONFIG.MIN_SEGMENTS 
       ? CONFIG.BOOST_SPEED 
       : CONFIG.BASE_SPEED;
@@ -53,18 +51,14 @@ export class Lizard {
     this.x += Math.cos(this.angle) * this.speed;
     this.y += Math.sin(this.angle) * this.speed;
 
-    // 4. Segments trail logic
+    // 3. Segments trail logic
     this.segments.unshift({ x: this.x, y: this.y });
     
-    // Growth/Shrink logic
     if (this.segments.length > this.targetLength) {
       this.segments.pop();
-    } else if (this.segments.length < this.targetLength) {
-      // Gradually grow: handled by not popping, or explicitly adding if needed.
-      // In this trail logic, unshift handles the growth if we don't pop.
     }
 
-    // 5. Boost consumption
+    // 4. Boost consumption
     if (this.isBoosted && this.segments.length > CONFIG.MIN_SEGMENTS) {
       this.boostTimer += deltaTime;
       if (this.boostTimer >= 500) {
@@ -81,17 +75,15 @@ export class Lizard {
 
     const baseSize = CONFIG.BASE_SIZE;
 
-    // Draw body segments (back to front)
+    // Draw body segments
     for (let i = this.segments.length - 1; i > 0; i--) {
       const seg = this.segments[i];
-      // Tapering: front is baseSize, tail is 0.3 * baseSize
       const progress = i / this.segments.length;
       const radius = baseSize * (1 - progress * 0.7);
 
       ctx.beginPath();
       ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = this.color;
-      // Slightly darken body segments
       if (i > 0) {
         ctx.globalAlpha = 0.9;
         ctx.fill();
@@ -101,7 +93,6 @@ export class Lizard {
       }
       ctx.closePath();
 
-      // Legs at 4, 8, 12, 16
       if ([4, 8, 12, 16].includes(i)) {
         this.drawLegs(ctx, seg, i, time);
       }
@@ -115,14 +106,12 @@ export class Lizard {
     ctx.translate(head.x, head.y);
     ctx.rotate(this.angle);
 
-    // Head circle
     ctx.beginPath();
     ctx.arc(0, 0, headRadius, 0, Math.PI * 2);
     ctx.fillStyle = this.color;
     ctx.fill();
     ctx.closePath();
 
-    // Eyes
     const eyeOffset = headRadius * 0.5;
     const eyeRadius = headRadius * 0.25;
     const pupilRadius = eyeRadius * 0.5;
@@ -139,8 +128,8 @@ export class Lizard {
       ctx.fill();
     };
 
-    drawEye(1);  // Right
-    drawEye(-1); // Left
+    drawEye(1);
+    drawEye(-1);
 
     ctx.restore();
   }
@@ -167,8 +156,8 @@ export class Lizard {
       ctx.stroke();
     };
 
-    drawLeg(1);  // Right
-    drawLeg(-1); // Left
+    drawLeg(1);
+    drawLeg(-1);
   }
 
   grow(value: number = 3) {
